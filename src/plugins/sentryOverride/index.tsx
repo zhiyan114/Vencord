@@ -73,8 +73,7 @@ export default definePlugin({
     name: "Sentry Override",
     description: "Override sentry DSN",
     authors: [Devs.Zhiyan114],
-    cacheDSNVal: {} as { [key: string]: string; },
-    cacheOpt: {} as { [key: string]: string; },
+    cacheClient: {} as { [key: string]: any; },
 
     start() {
         const client = window.DiscordSentry;
@@ -82,13 +81,22 @@ export default definePlugin({
             return;
         new Logger("Sentry DSN Overrider", "#00FFFF").log("Overriding Sentry DSN");
 
-        this.cacheDSNVal = client.getClient()._dsn;
-        this.cacheOpt = client.getClient()._options;
+        this.cacheClient = client.getClient();
 
-        client.getClient()._dsn.host = "o125145.ingest.us.sentry.io";
-        client.getClient()._dsn.projectId = "4509414010847233";
-        client.getClient()._dsn.publicKey = "95d33ea79467d6758102cba08ff4bd80";
-        client.getClient()._options.tunnel = "https://sntryprox.zhiyan114.com";
+        client.init({
+            dsn: "https://95d33ea79467d6758102cba08ff4bd80@o125145.ingest.us.sentry.io/4509414010847233",
+            autoSessionTracking: false,
+            environment: this.cacheClient._options.environment,
+            release: this.cacheClient._options.release,
+            beforeSend: this.cacheClient._options.beforeSend,
+            integrations: this.cacheClient._options.integrations,
+            ignoreErrors: this.cacheClient._options.ignoreErrors,
+            denyUrls: this.cacheClient._options.denyUrls,
+        });
+
+        // client.getClient()._dsn.host = "o125145.ingest.us.sentry.io";
+        // client.getClient()._dsn.projectId = "4509414010847233";
+        // client.getClient()._dsn.publicKey = "95d33ea79467d6758102cba08ff4bd80";
 
     },
 
@@ -96,10 +104,10 @@ export default definePlugin({
         const client = window.DiscordSentry;
         if (!client)
             return;
-        new Logger("Sentry DSN Overrider", "#00FFFF").log("Resetting Sentry DSN");
-        client.getClient()._dsn.host = this.cacheDSNVal.host;
-        client.getClient()._dsn.projectId = this.cacheDSNVal.projectId;
-        client.getClient()._dsn.publicKey = this.cacheDSNVal.publicKey;
-        client.getClient()._options.tunnel = this.cacheOpt.tunnel;
+        new Logger("Sentry DSN Overrider", "#00FFFF").log("Resetting Sentry DSN - Not possible");
+        // client.getClient()._dsn.host = this.cacheDSNVal.host;
+        // client.getClient()._dsn.projectId = this.cacheDSNVal.projectId;
+        // client.getClient()._dsn.publicKey = this.cacheDSNVal.publicKey;
+        // client.getClient()._options.tunnel = this.cacheOpt.tunnel;
     }
 });

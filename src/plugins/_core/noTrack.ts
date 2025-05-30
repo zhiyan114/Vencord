@@ -113,7 +113,7 @@ export default definePlugin({
                 }
 
                 // Print all sentry stuff to the console
-                new Logger("NoTrack", "#8caaee").info("mmm");
+                new Logger("NoTrack", "#8caaee").info("AAAAAAAAAAAA: " + (Function.prototype as any).g);
 
                 // Reflect.deleteProperty(Function.prototype, "g");
                 // Reflect.deleteProperty(window, "DiscordSentry");
