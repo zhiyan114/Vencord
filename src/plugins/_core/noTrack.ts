@@ -112,24 +112,47 @@ export default definePlugin({
                     return;
                 }
 
-                new Logger("NoTrack", "#8caaee").info("Disabling Sentry by erroring its WebpackInstance");
+                // Print all sentry stuff to the console
+                new Logger("NoTrack", "#8caaee").info("mmm");
 
-                Reflect.deleteProperty(Function.prototype, "g");
-                Reflect.deleteProperty(window, "DiscordSentry");
+                // Reflect.deleteProperty(Function.prototype, "g");
+                // Reflect.deleteProperty(window, "DiscordSentry");
 
-                throw new Error("Sentry successfully disabled");
+                // throw new Error("Sentry successfully disabled");
+
+                // new Logger("NoTrack", "#8caaee").error("Patching Sentry init method");
+                // const sProp = Reflect.get(window, "DiscordSentry");
+                // console.log("SENTRY CLIENT RES", JSON.stringify(sProp.getClient()));
+                // if (sProp && sProp.init) {
+                //     // const client = sProp.getClient();
+                //     // if (client) {
+                //     //     client._dsn.host = "o125145.ingest.us.sentry.io";
+                //     //     client._dsn.projectId = "4509414010847233";
+                //     //     client._dsn.publicKey = "95d33ea79467d6758102cba08ff4bd80";
+                //     //     new Logger("NoTrack", "#8caaee").error("Sentry Client Overridden!");
+                //     // }
+                //     const old = sProp.init;
+                //     sProp.init = (config: any) => {
+                //         new Logger("NoTrack", "#8caaee").error("Patch Verified! Client initializating using new method");
+                //         // Disable Sentry by returning nothing
+                //         old({
+                //             ...config,
+                //             dsn: "https://95d33ea79467d6758102cba08ff4bd80@o125145.ingest.us.sentry.io/4509414010847233"
+                //         });
+                //     };
+                // }
             }
         });
 
-        Object.defineProperty(window, "DiscordSentry", {
-            configurable: true,
+        // Object.defineProperty(window, "DiscordSentry", {
+        //     configurable: true,
 
-            set() {
-                new Logger("NoTrack", "#8caaee").error("Failed to disable Sentry. Falling back to deleting window.DiscordSentry");
+        //     set() {
+        //         new Logger("NoTrack", "#8caaee").error("Failed to disable Sentry. Falling back to deleting window.DiscordSentry");
 
-                Reflect.deleteProperty(Function.prototype, "g");
-                Reflect.deleteProperty(window, "DiscordSentry");
-            }
-        });
+        //         Reflect.deleteProperty(Function.prototype, "g");
+        //         Reflect.deleteProperty(window, "DiscordSentry");
+        //     }
+        // });
     }
 });
