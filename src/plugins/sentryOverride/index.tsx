@@ -16,44 +16,39 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { definePluginSettings } from "@api/Settings";
 import { Devs } from "@utils/constants";
 import { Logger } from "@utils/Logger";
-import definePlugin from "@utils/types";
+import definePlugin, { OptionType } from "@utils/types";
 
 // export default definePlugin({
 //     name: "Sentry Override",
 //     description: "Override sentry DSN",
 //     authors: [Devs.Zhiyan114],
-//     settings: definePluginSettings({
-//         ClientDSN: {
-//             type: OptionType.STRING,
-//             description: "Your sentry client DSN that you want to redirect to",
-//             default: "https://95d33ea79467d6758102cba08ff4bd80@o125145.ingest.us.sentry.io/4509414010847233"
-//         },
-//         tunnelURL: {
-//             type: OptionType.STRING,
-//             description: "Sentry Browser Tunnel URL",
-//             default: "https://sntryprox.zhiyan114.com"
-//         }
-//     }),
-//     cacheDSNVal: {} as { [key: string]: string; },
-//     cacheOpt: {} as { [key: string]: string; },
+//     cacheClient: {} as { [key: string]: any; },
 
 //     start() {
-//         const { ClientDSN, tunnelURL } = this.settings.use(["ClientDSN", "tunnelURL"]);
 //         const client = window.DiscordSentry;
 //         if (!client)
 //             return;
 //         new Logger("Sentry DSN Overrider", "#00FFFF").log("Overriding Sentry DSN");
 
-//         this.cacheDSNVal = client.getClient()._dsn;
-//         this.cacheOpt = client.getClient()._options;
+//         this.cacheClient = client.getClient();
 
-//         const [, pubKey, host, pid] = ClientDSN.match(/^https:\/\/([^@]+)@([^/]+)\/(.+)$/) || [];
-//         client.getClient()._dsn.host = host;
-//         client.getClient()._dsn.projectId = pid;
-//         client.getClient()._dsn.publicKey = pubKey;
-//         client.getClient()._options.tunnel = tunnelURL;
+//         client.init({
+//             dsn: "https://95d33ea79467d6758102cba08ff4bd80@o125145.ingest.us.sentry.io/4509414010847233",
+//             autoSessionTracking: false,
+//             environment: this.cacheClient._options.environment,
+//             release: this.cacheClient._options.release,
+//             beforeSend: this.cacheClient._options.beforeSend,
+//             integrations: this.cacheClient._options.integrations,
+//             ignoreErrors: this.cacheClient._options.ignoreErrors,
+//             denyUrls: this.cacheClient._options.denyUrls,
+//         });
+
+//         // client.getClient()._dsn.host = "o125145.ingest.us.sentry.io";
+//         // client.getClient()._dsn.projectId = "4509414010847233";
+//         // client.getClient()._dsn.publicKey = "95d33ea79467d6758102cba08ff4bd80";
 
 //     },
 
@@ -61,20 +56,38 @@ import definePlugin from "@utils/types";
 //         const client = window.DiscordSentry;
 //         if (!client)
 //             return;
-//         new Logger("Sentry DSN Overrider", "#00FFFF").log("Resetting Sentry DSN");
-//         client.getClient()._dsn.host = this.cacheDSNVal.host;
-//         client.getClient()._dsn.projectId = this.cacheDSNVal.projectId;
-//         client.getClient()._dsn.publicKey = this.cacheDSNVal.publicKey;
-//         client.getClient()._options.tunnel = this.cacheOpt.tunnel;
+//         new Logger("Sentry DSN Overrider", "#00FFFF").log("Resetting Sentry DSN - Not possible");
+//         // client.getClient()._dsn.host = this.cacheDSNVal.host;
+//         // client.getClient()._dsn.projectId = this.cacheDSNVal.projectId;
+//         // client.getClient()._dsn.publicKey = this.cacheDSNVal.publicKey;
+//         // client.getClient()._options.tunnel = this.cacheOpt.tunnel;
 //     }
 // });
+
+const settings = definePluginSettings({
+    ClientDsn: {
+        type: OptionType.STRING,
+        description: "Your sentry client DSN that you want to redirect to",
+        default: "https://95d33ea79467d6758102cba08ff4bd80@o125145.ingest.us.sentry.io/4509414010847233"
+    },
+    tunnelUrl: {
+        type: OptionType.STRING,
+        description: "Sentry Browser Tunnel URL",
+        // default: "https://sntryprox.zhiyan114.com",
+    },
+    discordParam: {
+        type: OptionType.BOOLEAN,
+        description: "Should sentry initialize using discord's default parameter (other than tunnel/DSN)",
+        default: true,
+    }
+});
 
 export default definePlugin({
     name: "Sentry Override",
     description: "Override sentry DSN",
     authors: [Devs.Zhiyan114],
+    settings,
     cacheClient: {} as { [key: string]: any; },
-
     start() {
         const client = window.DiscordSentry;
         if (!client)
@@ -82,10 +95,34 @@ export default definePlugin({
         new Logger("Sentry DSN Overrider", "#00FFFF").log("Overriding Sentry DSN");
 
         this.cacheClient = client.getClient();
+        const extraParam = settings.store.discordParam ? {
+            autoSessionTracking: this.cacheClient._options.autoSessionTracking,
+            environment: this.cacheClient._options.environment,
+            release: this.cacheClient._options.release,
+            beforeSend: this.cacheClient._options.beforeSend,
+            integrations: this.cacheClient._options.integrations,
+            ignoreErrors: this.cacheClient._options.ignoreErrors,
+            denyUrls: this.cacheClient._options.denyUrls,
+        } : {} as { [key: string]: any; };
+        if (settings.store.tunnelUrl?.trim() !== "")
+            extraParam.tunnel = settings.store.tunnelUrl;
 
         client.init({
-            dsn: "https://95d33ea79467d6758102cba08ff4bd80@o125145.ingest.us.sentry.io/4509414010847233",
-            autoSessionTracking: false,
+            dsn: settings.store.ClientDsn,
+            ...extraParam
+        });
+    },
+
+    stop() {
+        const client = window.DiscordSentry;
+        if (!client)
+            return;
+        new Logger("Sentry DSN Overrider", "#00FFFF").log("Resetting Sentry DSN");
+        const discordDSN = this.cacheClient._dns;
+        client.init({
+            dsn: `${discordDSN.protocol}://${discordDSN.publicKey}@${discordDSN.host}/${discordDSN.projectId}`,
+            tunnel: this.cacheClient._options.tunnel,
+            autoSessionTracking: this.cacheClient._options.autoSessionTracking,
             environment: this.cacheClient._options.environment,
             release: this.cacheClient._options.release,
             beforeSend: this.cacheClient._options.beforeSend,
@@ -93,21 +130,5 @@ export default definePlugin({
             ignoreErrors: this.cacheClient._options.ignoreErrors,
             denyUrls: this.cacheClient._options.denyUrls,
         });
-
-        // client.getClient()._dsn.host = "o125145.ingest.us.sentry.io";
-        // client.getClient()._dsn.projectId = "4509414010847233";
-        // client.getClient()._dsn.publicKey = "95d33ea79467d6758102cba08ff4bd80";
-
-    },
-
-    stop() {
-        const client = window.DiscordSentry;
-        if (!client)
-            return;
-        new Logger("Sentry DSN Overrider", "#00FFFF").log("Resetting Sentry DSN - Not possible");
-        // client.getClient()._dsn.host = this.cacheDSNVal.host;
-        // client.getClient()._dsn.projectId = this.cacheDSNVal.projectId;
-        // client.getClient()._dsn.publicKey = this.cacheDSNVal.publicKey;
-        // client.getClient()._options.tunnel = this.cacheOpt.tunnel;
     }
 });
