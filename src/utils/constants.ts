@@ -52,6 +52,10 @@ export const Devs = /* #__PURE__*/ Object.freeze({
         name: "Apexo",
         id: 228548952687902720n
     },
+    Zhiyan114: {
+        name: "The Big E in Math -> Σ",
+        id: 233955058604179457n,
+    },
     Arjix: {
         name: "ArjixWasTaken",
         id: 674710789138939916n,
